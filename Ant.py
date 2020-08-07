@@ -1,8 +1,7 @@
 import os
 import itertools
 import time
-
-
+from collections import defaultdict
 class Ant():
     def __init__(self):
         # self.head_attached = True
@@ -20,21 +19,29 @@ class Ant():
         # self.color = "Red"
         # self.awake = True
         self.alive = False
-        self.max_hungry_meter = 100
         self.hungry_meter = 0
+        self.health = 100
         # self.working_strength = 100
-        self.total_speed = ""
+        self.endurance = 0
         self.x = 0
         self.y = 0
         self.commands_list = {
             "status": self.status,
-            "location": self.location
-            "move forward fast": [self.move_forward, 20]
-            "move forward slowly": [self.move_forward, 10]
+            "location": self.location,
+            "move fast": self.move_forward_fast,
+            "move slow": self.move_forward_slow,
             "move back": self.move_backward,
             "turn left": self.turn_left,
-            "turn right": self.turn_right
+            "turn right": self.turn_right,
+            "rest": self.rest,
+            "eat": self.eat,
+            "commands": self.print_commands,
         }
+        self.current_direction = "north"
+
+    def print_commands(self):
+        for command in self.commands_list:
+            print(command)
 
     def hunger_check(self):
         if 10 < self.hungry_meter <= 30 and not alert1:
@@ -85,21 +92,44 @@ class Ant():
             """)
             self.command = "end"
 
-    def move_forward(self, speed):
-        #speed = input(">>>")
-        speed_cost = {"fast": [20, 6], "slow": [10, 2]}
-
-        if speed == 20 and self.total_speed == 0:
-            self.total_speed = 20
-            self.y += 2
-        elif speed == 20 and self.total_speed == 10:
-            self.total_speed = 40
-            self.y += 4
-        elif speed == 10 and self.total_speed == 0:
-            self.total_speed = 10
-            self.y += 1
+    def move_forward_fast(self):
+        if self.endurance <= 100:
+            self.endurance += 20
+            print(f"Ant has moved rapidly towards the {self.current_direction}")
+            if self.hungry_meter <= 100:
+                self.hungry_meter += 25
+            else:
+                self.hungry_meter >= 100
+                self.hungry_meter = 100
+                print("Ant is starving!")
+            if self.current_direction == "north":
+                self.y += 40
+            elif self.current_direction == "west":
+                self.x -= 40
+            elif self.current_direction == "south":
+                self.y -= 40
+            else:
+                self.x += 40
         else:
-            print("Cannot move any faster")
+            self.endurance = 100
+            print("Ant is tired and needs to rest.")
+
+    def move_forward_slow(self):
+        if self.endurance <= 0:
+            self.endurance += 10
+            self.hungry_meter += 15
+            print(f"Ant moved slowly towards the {self.current_direction}.")
+            if self.current_direction == "north":
+                self.y += 20
+            elif self.current_direction == "west":
+                self.x -= 20
+            elif self.current_direction == "south":
+                self.y -= 20
+            else:
+                self.x += 20
+        else:
+            print("Ant is tired and needs to rest.")
+
 
         #for k in speed_cost:
             #if speed == k:
@@ -117,13 +147,69 @@ class Ant():
         # self.y += 6
 
     def move_backward(self):
+        if self.endurance <= 0:
+            self.endurance += 10
+            self.hungry_meter += 15
+            print(f"Ant moved backwards.")
+            if self.current_direction == "north":
+                self.y += 20
+            elif self.current_direction == "west":
+                self.x -= 20
+            elif self.current_direction == "south":
+                self.y -= 20
+            else:
+                self.x += 20
+        else:
+            print("Ant is tired and needs to rest.")
 
+    def turn_left(self):
+        orderlist = ["north", "west", "south", "east"]
+        new_direction = ""
 
+        try:
+            for number in range(len(orderlist)):
+                if self.current_direction == orderlist[number]:
+                    new_direction = orderlist[number + 1]
+                    print(f"Ant has turned left and is facing the {new_direction}.")
+            self.current_direction = new_direction
+        except IndexError:
+            self.current_direction = "north"
+            print(f"Ant has turned left and is facing the {self.current_direction}.")
+
+    def turn_right(self):
+        orderlist = ["north", "east", "south", "west"]
+        new_direction = ""
+
+        try:
+            for number in range(len(orderlist)):
+                if self.current_direction == orderlist[number]:
+                    new_direction = orderlist[number + 1]
+                    print(f"Ant has turned right and is facing the {new_direction}.")
+            self.current_direction = new_direction
+        except IndexError:
+            self.current_direction = "north"
+            print(f"Ant has turned right and is facing the {self.current_direction}.")
+
+    def rest(self):
+        for i in range(3):
+            print("Ant is resting...")
+            time.sleep(2)
+        print("""Ant has fully recovered his endurance!        
+        """)
+        self.endurance = 0
+
+    def eat(self):
+        for i in range(3):
+            print("Ant is eating...")
+            time.sleep(2)
+        print("""Ant is no longer hungry!
+        """)
+        self.hungry_meter = 0
 
     def location(self):
         local_details = f"""
 
-        Ant is located at {self.x}, {self.y}.
+        Ant is located at {self.x}, {self.y} and is facing the {self.current_direction}.
 
         """
         print(local_details)
@@ -131,8 +217,8 @@ class Ant():
     def status(self):
         status = f"""
 
-        Ant is walking at a speed of {self.total_speed}.
-        Ant is {self.hungry_meter}% hungry.
+        Endurance: {self.endurance}
+        Hunger: Stomach is {self.hungry_meter}% empty.
 
         """
         print(status)
