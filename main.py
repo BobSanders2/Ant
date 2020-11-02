@@ -1,9 +1,24 @@
 from Ant import Ant
+from environment import Environment
 
-
-class Mainloop(Ant):
-    def __init(self):
+class Mainloop(Ant, Environment):
+    def __init__(self):
         Ant.__init__(self)
+        Environment.__init__(self)
+        self.commands_list = {
+            "status": self.status,
+            "location": self.location,
+            "move fast": self.move_forward_fast,
+            "move slow": self.move_forward_slow,
+            "move back": self.move_backward,
+            "turn left": self.turn_left,
+            "turn right": self.turn_right,
+            "rest": self.rest,
+            "eat": self.eat,
+            "commands": self.print_commands,
+        }
+
+        self.env = self.generate_env()
 
     def mainloop(self):
         self.command = ""
@@ -23,19 +38,21 @@ class Mainloop(Ant):
         """)
 
         while self.command != "quit":
-            if self.health <= 0:
+            if not self.ant_status['alive']:
                 print("Ant has died.")
                 break
 
             self.command = input(">>>")
 
             if self.command in self.commands_list:
-                for values in self.commands_list:
-                    if self.command == values:
-                        self.commands_list[values]()
+                self.commands_list[self.command]()
             else:
                 print("That is not a command")
 
-bob = Mainloop()
-bob.mainloop()
+    def print_commands(self):
+        for command in self.commands_list:
+            print(command)
+
+game = Mainloop()
+game.mainloop()
 
